@@ -29,6 +29,10 @@ EOD
 	apache_go
 	php_go
 	mysql_go
+	nodejs_go
+	ruby_go
+	composer_go
+	zsh_go
 
 	touch /var/lock/vagrant-provision
 }
@@ -47,8 +51,74 @@ network_go() {
 
 tools_go() {
 	# Install basic tools
-	apt-get -y install build-essential binutils-doc git
+	apt-get -y install build-essential binutils-doc git curl libcairo2-dev libav-tools nfs-common portmap
 }
+
+nodejs_go() {
+	apt-get update
+	apt-get install -y python-software-properties python g++ make
+	add-apt-repository -y ppa:chris-lea/node.js
+	apt-get update
+	apt-get install -y nodejs
+
+	sudo apt-get install -y npm -y
+	sudo npm config set registry http://registry.npmjs.org/
+	sudo npm install source-map -g
+	sudo npm update --save-dev
+	sudo npm install uglify-js@1.3 -g
+}
+
+zsh_go() {
+	# Added zsh shell.
+	sudo apt-get install zsh
+	wget --no-check-certificate https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | sh
+	sudo chsh -s /bin/zsh vagrant
+
+	# Change the oh my zsh default theme.
+	sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="3den"/g' ~/.zshrc
+}
+
+composer_go() {
+	# install Composer
+	curl -s https://getcomposer.org/installer | php
+	mv composer.phar /usr/local/bin/composer
+}
+
+ruby_go() {
+	echo 'Installing Ruby and Gems..'
+	sudo apt-get remove --purge ruby-rvm ruby
+	sudo rm -rf /usr/share/ruby-rvm /etc/rmvrc /etc/profile.d/rvm.sh
+	rm -rf ~/.rvm* ~/.gem/ ~/.bundle*
+	echo 'gem: --no-rdoc --no-ri' >> ~/.gemrc
+	echo "export rvm_max_time_flag=20" >> ~/.rvmrc
+	#tail ~/.gemrc
+	echo "[[ -s '${HOME}/.rvm/scripts/rvm' ]] && source '${HOME}/.rvm/scripts/rvm'" >> ~/.bashrc
+	curl -L https://get.rvm.io | bash -s stable --ruby
+	sudo gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+
+	#source /home/vagrant/.rvm/scripts/rvm
+	source /usr/local/rvm/scripts/rvm
+
+	# Fix permissions and add Vagrant to the RVM group
+	sudo rvm group add rvm vagrant
+	sudo rvm fix-permissions
+
+	# Now that permissions are fixed, install ruby 2.2.2
+	sudo rvm install 2.2.2
+
+	gem install cyaml
+	gem install compass
+	gem install sass
+	gem install bundler
+
+	# Reinstall ruby 1.9.3 for backwards compatability
+	sudo bash -c "rvm reinstall 1.9.3"
+
+	# Use Ruby 2.2.2 by default globally
+	sudo rvm --default use 2.2.2
+}
+
+
 
 apache_go() {
 	# Install Apache
