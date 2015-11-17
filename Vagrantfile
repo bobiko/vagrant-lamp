@@ -12,6 +12,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.network "forwarded_port", guest: 3306, host: 8889
 
 	config.vm.provision "shell", path: "provision.sh"
+	
+	config.vm.provider "virtualbox" do |v|
+		v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/vagrant", "1"]
+	end
+	
+#	config.vm.synced_folder "./src", "/vagrant", disabled: true
 
   # config.vm.provider "virtualbox" do |vb|
   #   # Don't boot with headless mode

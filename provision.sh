@@ -32,7 +32,6 @@ EOD
 	nodejs_go
 	ruby_go
 	composer_go
-	zsh_go
 
 	touch /var/lock/vagrant-provision
 }
